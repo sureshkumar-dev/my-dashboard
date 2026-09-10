@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Plus, Calendar as CalendarIcon, Sparkles } from 'lucide-react';
+import { Menu, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { NavTab } from './Sidebar';
 
 interface HeaderProps {
@@ -43,25 +43,25 @@ export const Header: React.FC<HeaderProps> = ({
   }).format(new Date());
 
   return (
-    <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-rose-100/80 px-4 sm:px-8 py-4">
-      <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-rose-100/80 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4 w-full">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onOpenMobileMenu}
-            className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-rose-50 transition-colors"
+            className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-rose-50 transition-colors shrink-0"
             aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
               {title}
             </h1>
-            <p className="text-xs text-slate-500 hidden sm:block">{subtitle}</p>
+            <p className="text-xs text-slate-500 hidden sm:block truncate">{subtitle}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50/70 border border-rose-100 text-xs text-slate-600 font-medium">
             <CalendarIcon className="w-3.5 h-3.5 text-rose-500" />
             <span>{todayFormatted}</span>
@@ -70,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
           {onQuickAction && (
             <button
               onClick={onQuickAction}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm shadow-rose-200 hover:shadow-md transition-all"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm shadow-rose-200 hover:shadow-md transition-all shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Quick Add</span>

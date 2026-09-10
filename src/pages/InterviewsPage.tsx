@@ -94,12 +94,20 @@ export const InterviewsPage: React.FC = () => {
           className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-sm shadow-rose-200 hover:shadow transition-all shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>Schedule Interview</span>
+          <span>Add Interview</span>
         </button>
       </div>
 
       {/* Interviews Table / Empty State */}
-      {filteredInterviews.length === 0 ? (
+      {data.interviews.length === 0 ? (
+        <EmptyState
+          icon={Calendar}
+          title="No interviews scheduled."
+          description="Log technical interviews, coding rounds, and screening calls to record questions asked, feedback, and mistakes."
+          actionText="Add Interview"
+          onAction={() => setIsNewModalOpen(true)}
+        />
+      ) : filteredInterviews.length === 0 ? (
         <EmptyState
           icon={Calendar}
           title={
@@ -109,9 +117,12 @@ export const InterviewsPage: React.FC = () => {
               ? 'No Past Interviews Recorded'
               : 'No Interviews Found'
           }
-          description="Log technical interviews, coding rounds, and screening calls to record questions asked, feedback, and mistakes."
-          actionText="Schedule New Interview"
-          onAction={() => setIsNewModalOpen(true)}
+          description="No interviews match your search query or selected tab."
+          actionText="Clear Filters"
+          onAction={() => {
+            setSearchQuery('');
+            setActiveTab('all');
+          }}
         />
       ) : (
         <div className="bg-white rounded-2xl border border-rose-100/90 shadow-sm overflow-hidden">

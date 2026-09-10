@@ -71,19 +71,27 @@ export const GoalsPage: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-sm shadow-rose-200 transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Set New Goal</span>
+            <span>Add Goal</span>
           </button>
         </div>
       </div>
 
       {/* Goals Grid / Empty State */}
-      {filteredGoals.length === 0 ? (
+      {data.goals.length === 0 ? (
         <EmptyState
           icon={Target}
-          title="No Goals Found"
-          description="Create specific measurable career milestones (e.g. Apply to 10 jobs this week, Complete 5 mock interviews, Finish Node.js revision)."
-          actionText="Create First Goal"
+          title="No goals created yet."
+          description="Create specific measurable career milestones to keep your momentum high."
+          actionText="Add Goal"
           onAction={() => setIsNewModalOpen(true)}
+        />
+      ) : filteredGoals.length === 0 ? (
+        <EmptyState
+          icon={Target}
+          title="No Goals in Category"
+          description="No goals found in the selected category."
+          actionText="Show All Goals"
+          onAction={() => setCategoryFilter('all')}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

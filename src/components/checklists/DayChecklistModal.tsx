@@ -35,7 +35,7 @@ export const DayChecklistModal: React.FC<DayChecklistModalProps> = ({
       setRecurrence('one-time');
       setNotes('');
       setTasksText(
-        `Review company background & tech stack\nReview JD & align talking points\nRevise React & Node.js fundamentals\nReview project explanation (FarmGuard & Cartify)\nPrepare questions for interviewer\nCheck laptop, microphone, camera, and internet\nJoin meeting 5 minutes early`
+        `Review company background & tech stack\nReview JD & align talking points\nRevise core technical fundamentals\nReview project architecture, challenges, and solutions\nPrepare questions for interviewer\nCheck laptop, microphone, camera, and internet\nJoin meeting 5 minutes early`
       );
     }
   }, [dayChecklist, isOpen]);
@@ -119,7 +119,7 @@ export const DayChecklistModal: React.FC<DayChecklistModalProps> = ({
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. BE Engineer Interview Day"
+            placeholder="e.g. Technical Interview Day"
             required
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
           />

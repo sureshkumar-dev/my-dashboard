@@ -36,7 +36,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
     {
       label: 'Total Applications',
       value: total,
-      subtext: 'Across all target roles',
+      subtext: total === 0 ? 'No applications yet' : 'Across all target roles',
       icon: Briefcase,
       color: 'text-slate-800',
       bg: 'bg-white',
@@ -47,7 +47,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
     {
       label: 'Interview Calls',
       value: calls,
-      subtext: `${total > 0 ? Math.round((calls / total) * 100) : 0}% response rate`,
+      subtext: total > 0 ? `${Math.round((calls / total) * 100)}% response rate` : '0% response rate',
       icon: PhoneCall,
       color: 'text-amber-700',
       bg: 'bg-white',
@@ -58,7 +58,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
     {
       label: 'Upcoming Interviews',
       value: upcomingInterviewsCount,
-      subtext: 'Scheduled rounds',
+      subtext: upcomingInterviewsCount === 0 ? 'None scheduled' : 'Scheduled rounds',
       icon: Calendar,
       color: 'text-rose-600',
       bg: 'bg-white',
@@ -69,7 +69,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
     {
       label: 'Offers Received',
       value: offers,
-      subtext: 'Career milestones',
+      subtext: offers === 0 ? 'Target: 1+ offers' : 'Career milestones',
       icon: Award,
       color: 'text-emerald-700',
       bg: 'bg-white',
@@ -80,7 +80,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
     {
       label: 'Pending / Waiting',
       value: pending,
-      subtext: 'In recruiter queue',
+      subtext: pending === 0 ? 'Queue is clear' : 'In recruiter queue',
       icon: Clock,
       color: 'text-slate-600',
       bg: 'bg-white',
@@ -91,7 +91,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
     {
       label: 'Rejected',
       value: rejected,
-      subtext: 'Archived opportunities',
+      subtext: rejected === 0 ? 'Zero rejections' : 'Archived records',
       icon: XCircle,
       color: 'text-slate-400',
       bg: 'bg-white',
@@ -102,17 +102,17 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 w-full">
       {cards.map((c) => {
         const Icon = c.icon;
         return (
           <div
             key={c.label}
             onClick={c.onClick}
-            className={`${c.bg} p-4 rounded-2xl border ${c.border} shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between`}
+            className={`${c.bg} p-4 rounded-2xl border ${c.border} shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between min-w-0 overflow-hidden`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider line-clamp-1">
+            <div className="flex items-center justify-between mb-2 gap-1.5">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">
                 {c.label}
               </span>
               <div
@@ -122,9 +122,9 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
               </div>
             </div>
 
-            <div>
-              <div className={`text-2xl font-black ${c.color}`}>{c.value}</div>
-              <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{c.subtext}</p>
+            <div className="min-w-0">
+              <div className={`text-2xl font-black ${c.color} truncate`}>{c.value}</div>
+              <p className="text-[10px] text-slate-400 mt-0.5 truncate">{c.subtext}</p>
             </div>
           </div>
         );

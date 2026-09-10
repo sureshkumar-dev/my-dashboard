@@ -52,6 +52,8 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   const [isEditing, setIsEditing] = useState(isNew);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const [newRoleName, setNewRoleName] = useState('');
+
   // Form State
   const [formData, setFormData] = useState<Partial<JobApplication>>({
     company: '',
@@ -78,6 +80,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   useEffect(() => {
     if (application) {
       setFormData(application);
+      setNewRoleName('');
       setIsEditing(isNew);
     } else {
       setFormData({
@@ -101,6 +104,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
         followUpDate: '',
         notes: '',
       });
+      setNewRoleName('');
       setIsEditing(true);
     }
   }, [application, isNew, initialRoleId, roles]);
@@ -125,12 +129,23 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
       alert('Please enter a company name.');
       return;
     }
-    if (!formData.roleId) {
+
+    const isCreatingRole = roles.length === 0 || formData.roleId === '__new__';
+    if (isCreatingRole) {
+      if (!newRoleName.trim()) {
+        alert('Please enter a role category name (e.g. Full Stack Developer).');
+        return;
+      }
+    } else if (!formData.roleId) {
       alert('Please select a role.');
       return;
     }
 
-    onSave(formData);
+    onSave({
+      ...formData,
+      ...(isCreatingRole ? { newRoleName: newRoleName.trim() } : {}),
+    });
+
     if (!isNew) {
       setIsEditing(false);
     } else {
@@ -385,7 +400,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                   value={formData.company || ''}
                   onChange={handleInputChange}
                   required
-                  placeholder="e.g. BE Engineer"
+                  placeholder="e.g. Acme Corp"
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
                 />
               </div>
@@ -394,19 +409,43 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Role Category <span className="text-rose-600">*</span>
                 </label>
-                <select
-                  name="roleId"
-                  value={formData.roleId || ''}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-white"
-                >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
+                {roles.length === 0 ? (
+                  <input
+                    type="text"
+                    value={newRoleName}
+                    onChange={(e) => setNewRoleName(e.target.value)}
+                    required
+                    placeholder="e.g. Full Stack Developer"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                  />
+                ) : (
+                  <>
+                    <select
+                      name="roleId"
+                      value={formData.roleId || ''}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-white"
+                    >
+                      {roles.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
+                      <option value="__new__">+ Add new role category...</option>
+                    </select>
+                    {formData.roleId === '__new__' && (
+                      <input
+                        type="text"
+                        value={newRoleName}
+                        onChange={(e) => setNewRoleName(e.target.value)}
+                        required
+                        placeholder="Enter new role category name"
+                        className="mt-2 w-full px-3 py-2 text-sm border border-rose-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                      />
+                    )}
+                  </>
+                )}
               </div>
 
               <div>

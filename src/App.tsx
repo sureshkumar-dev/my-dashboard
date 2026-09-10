@@ -52,7 +52,7 @@ const DashboardApp: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#faf7f7] text-slate-900 selection:bg-rose-100 selection:text-rose-900">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-[#faf7f7] text-slate-900 selection:bg-rose-100 selection:text-rose-900">
       {/* Desktop Sidebar */}
       <Sidebar
         currentTab={currentTab}
@@ -65,14 +65,14 @@ const DashboardApp: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8">
+      <div className="flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden pb-20 lg:pb-8">
         <Header
           currentTab={currentTab}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           onQuickAction={() => setIsQuickActionModalOpen(true)}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto animate-fadeIn">
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 min-w-0">
           {currentTab === 'dashboard' && (
             <DashboardPage
               onNavigateToTab={setCurrentTab}

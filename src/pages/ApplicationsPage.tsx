@@ -4,7 +4,7 @@ import { RoleGroup } from '../components/applications/RoleGroup';
 import { ApplicationModal } from '../components/applications/ApplicationModal';
 import { AddRoleModal } from '../components/applications/AddRoleModal';
 import { JobApplication, ApplicationStatus } from '../types';
-import { Plus, Search, Filter, Briefcase, Sparkles } from 'lucide-react';
+import { Plus, Search, Filter, Briefcase } from 'lucide-react';
 import { EmptyState } from '../components/common/EmptyState';
 
 export const ApplicationsPage: React.FC = () => {
@@ -48,7 +48,13 @@ export const ApplicationsPage: React.FC = () => {
   };
 
   const handleCreateApplication = (appData: any) => {
-    addApplication(appData);
+    let roleId = appData.roleId;
+    // If a new role name was typed on the fly
+    if (appData.newRoleName && appData.newRoleName.trim()) {
+      const createdRole = addRole(appData.newRoleName.trim());
+      roleId = createdRole.id;
+    }
+    addApplication({ ...appData, roleId });
     setIsNewAppModalOpen(false);
   };
 
@@ -65,12 +71,12 @@ export const ApplicationsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 w-full min-w-0">
       {/* Top Action & Filter Header */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-rose-100/90 shadow-sm">
-        <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-rose-100/90 shadow-sm w-full min-w-0">
+        <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 min-w-0">
           {/* Search bar */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -82,7 +88,7 @@ export const ApplicationsPage: React.FC = () => {
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Filter className="w-4 h-4 text-slate-400 shrink-0" />
             <select
               value={statusFilter}
@@ -100,7 +106,7 @@ export const ApplicationsPage: React.FC = () => {
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={() => setIsAddRoleModalOpen(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-rose-700 bg-rose-50/70 hover:bg-rose-100/70 border border-rose-200/70 rounded-xl transition-colors"
@@ -122,20 +128,37 @@ export const ApplicationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Role-wise List of Groups */}
-      {data.roles.length === 0 ? (
+      {/* When no applications exist at all */}
+      {data.applications.length === 0 ? (
         <EmptyState
           icon={Briefcase}
-          title="No Roles Created Yet"
-          description="Create your first role category (e.g. Full Stack Developer, React Developer) to organize your applications."
-          actionText="Create First Role"
-          onAction={() => setIsAddRoleModalOpen(true)}
+          title="No job applications yet."
+          description="Add your first application to start tracking your job search."
+          actionText="Add Application"
+          onAction={() => {
+            setTargetRoleIdForNewApp(undefined);
+            setIsNewAppModalOpen(true);
+          }}
+        />
+      ) : filteredApps.length === 0 ? (
+        <EmptyState
+          icon={Briefcase}
+          title="No Matching Applications"
+          description="No applications match your search query or filter."
+          actionText="Clear Filters"
+          onAction={() => {
+            setSearchQuery('');
+            setStatusFilter('all');
+          }}
         />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 w-full min-w-0">
           {data.roles.map((role) => {
             const roleApplications = filteredApps.filter((a) => a.roleId === role.id);
-            // If filters are active and role has no matching apps, still render or show empty count
+            // Hide empty role groups when search filter is active
+            if (roleApplications.length === 0 && (searchQuery !== '' || statusFilter !== 'all')) {
+              return null;
+            }
             return (
               <RoleGroup
                 key={role.id}

@@ -372,7 +372,7 @@ export const InterviewModal: React.FC<InterviewModalProps> = ({
                   value={formData.company || ''}
                   onChange={handleInputChange}
                   required
-                  placeholder="e.g. BE Engineer"
+                  placeholder="e.g. Acme Corp"
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
                 />
               </div>

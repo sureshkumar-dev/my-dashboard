@@ -1,14 +1,69 @@
 import { DashboardData } from '../types';
-import { getInitialSeedData } from './seedData';
+import { getInitialEmptyData, BUILT_IN_TEMPLATES } from './seedData';
 
-export const STORAGE_KEY = 'job_dashboard_data_v1';
-export const CURRENT_SCHEMA_VERSION = 1;
+export const STORAGE_KEY = 'job_dashboard_data_v2';
+export const CURRENT_SCHEMA_VERSION = 2;
+
+// Helper to detect and discard any remnant demo/mock records from development
+const isDemoRecord = (item: any): boolean => {
+  if (!item || typeof item !== 'object') return true;
+  const id = String(item.id || '');
+  const company = String(item.company || item.companyName || '');
+  const name = String(item.name || item.title || '');
+
+  // Check demo IDs or known demo names
+  if (
+    id.startsWith('app-') ||
+    id.startsWith('int-') ||
+    id.startsWith('chk-') ||
+    id.startsWith('day-chk-') ||
+    id.startsWith('mnc-') ||
+    id.startsWith('goal-')
+  ) {
+    return true;
+  }
+
+  if (
+    company === 'BE Engineer' ||
+    company === 'ABC Technologies' ||
+    company === 'XYZ Solutions' ||
+    company === 'Company A' ||
+    company === 'Company B' ||
+    company === 'NovaStack Labs' ||
+    company === 'Microsoft' ||
+    company === 'Amazon' ||
+    company === 'Accenture' ||
+    company === 'Google' ||
+    company === 'Oracle'
+  ) {
+    return true;
+  }
+
+  if (
+    name === 'BE Engineer Interview Day' ||
+    name === 'Apply to 10 jobs this week' ||
+    name === 'Complete 5 mock interviews' ||
+    name === 'Finish Node.js & Redis revision' ||
+    name === 'Apply to 5 MNCs'
+  ) {
+    return true;
+  }
+
+  return false;
+};
 
 export const loadStoredData = (): DashboardData => {
   try {
+    // Clear out old v1 storage if present
+    try {
+      localStorage.removeItem('job_dashboard_data_v1');
+    } catch {
+      // Ignore
+    }
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      const initial = getInitialSeedData();
+      const initial = getInitialEmptyData();
       saveStoredData(initial);
       return initial;
     }
@@ -18,36 +73,38 @@ export const loadStoredData = (): DashboardData => {
       throw new Error('Invalid storage format');
     }
 
-    // Ensure all critical arrays exist and provide fallbacks if missing
-    const initial = getInitialSeedData();
+    const initial = getInitialEmptyData();
+
+    // Sanitize and strictly strip out any demo data
+    const rawApps = Array.isArray(parsed.applications) ? parsed.applications : [];
+    const rawInterviews = Array.isArray(parsed.interviews) ? parsed.interviews : [];
+    const rawChecklists = Array.isArray(parsed.checklists) ? parsed.checklists : [];
+    const rawDayChecklists = Array.isArray(parsed.dayChecklists) ? parsed.dayChecklists : [];
+    const rawMnc = Array.isArray(parsed.mncCompanies) ? parsed.mncCompanies : [];
+    const rawGoals = Array.isArray(parsed.goals) ? parsed.goals : [];
+    const rawRoles = Array.isArray(parsed.roles) ? parsed.roles : [];
+
     const sanitized: DashboardData = {
-      version: parsed.version || CURRENT_SCHEMA_VERSION,
+      version: CURRENT_SCHEMA_VERSION,
       lastUpdated: parsed.lastUpdated || new Date().toISOString(),
       userProfile: parsed.userProfile || initial.userProfile,
-      roles: Array.isArray(parsed.roles) ? parsed.roles : initial.roles,
-      applications: Array.isArray(parsed.applications) ? parsed.applications : initial.applications,
-      interviews: Array.isArray(parsed.interviews) ? parsed.interviews : initial.interviews,
-      checklists: Array.isArray(parsed.checklists) ? parsed.checklists : initial.checklists,
-      checklistTemplates: Array.isArray(parsed.checklistTemplates) ? parsed.checklistTemplates : initial.checklistTemplates,
-      dayChecklists: Array.isArray(parsed.dayChecklists) ? parsed.dayChecklists : initial.dayChecklists,
-      mncCompanies: Array.isArray(parsed.mncCompanies) ? parsed.mncCompanies : initial.mncCompanies,
-      goals: Array.isArray(parsed.goals) ? parsed.goals : initial.goals,
+      roles: rawRoles.filter((r: any) => !r.id?.startsWith('role-')),
+      applications: rawApps.filter((a: any) => !isDemoRecord(a)),
+      interviews: rawInterviews.filter((i: any) => !isDemoRecord(i)),
+      checklists: rawChecklists.filter((c: any) => !isDemoRecord(c)),
+      checklistTemplates:
+        Array.isArray(parsed.checklistTemplates) && parsed.checklistTemplates.length > 0
+          ? parsed.checklistTemplates
+          : BUILT_IN_TEMPLATES,
+      dayChecklists: rawDayChecklists.filter((d: any) => !isDemoRecord(d)),
+      mncCompanies: rawMnc.filter((m: any) => !isDemoRecord(m)),
+      goals: rawGoals.filter((g: any) => !isDemoRecord(g)),
     };
 
     return sanitized;
   } catch (error) {
     console.error('Failed to load dashboard data from localStorage:', error);
-    // Backup corrupted string if present
-    try {
-      const corrupt = localStorage.getItem(STORAGE_KEY);
-      if (corrupt) {
-        localStorage.setItem(`${STORAGE_KEY}_corrupted_${Date.now()}`, corrupt);
-      }
-    } catch {
-      // Ignore secondary storage error
-    }
-
-    const fallback = getInitialSeedData();
+    const fallback = getInitialEmptyData();
     saveStoredData(fallback);
     return fallback;
   }
@@ -57,6 +114,7 @@ export const saveStoredData = (data: DashboardData): void => {
   try {
     const payload: DashboardData = {
       ...data,
+      version: CURRENT_SCHEMA_VERSION,
       lastUpdated: new Date().toISOString(),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -94,12 +152,11 @@ export const validateAndImportJSON = (
       return { success: false, message: 'Uploaded file is not a valid JSON object.' };
     }
 
-    // Validate essential keys
     const roles = Array.isArray(parsed.roles) ? parsed.roles : [];
     const applications = Array.isArray(parsed.applications) ? parsed.applications : [];
     const interviews = Array.isArray(parsed.interviews) ? parsed.interviews : [];
     const checklists = Array.isArray(parsed.checklists) ? parsed.checklists : [];
-    const checklistTemplates = Array.isArray(parsed.checklistTemplates) ? parsed.checklistTemplates : [];
+    const checklistTemplates = Array.isArray(parsed.checklistTemplates) ? parsed.checklistTemplates : BUILT_IN_TEMPLATES;
     const dayChecklists = Array.isArray(parsed.dayChecklists) ? parsed.dayChecklists : [];
     const mncCompanies = Array.isArray(parsed.mncCompanies) ? parsed.mncCompanies : [];
     const goals = Array.isArray(parsed.goals) ? parsed.goals : [];
@@ -110,12 +167,12 @@ export const validateAndImportJSON = (
       finalData = {
         version: CURRENT_SCHEMA_VERSION,
         lastUpdated: new Date().toISOString(),
-        userProfile: parsed.userProfile || getInitialSeedData().userProfile,
+        userProfile: parsed.userProfile || getInitialEmptyData().userProfile,
         roles,
         applications,
         interviews,
         checklists,
-        checklistTemplates: checklistTemplates.length > 0 ? checklistTemplates : getInitialSeedData().checklistTemplates,
+        checklistTemplates: checklistTemplates.length > 0 ? checklistTemplates : BUILT_IN_TEMPLATES,
         dayChecklists,
         mncCompanies,
         goals,
@@ -169,25 +226,13 @@ export const validateAndImportJSON = (
 };
 
 export const clearAllStoredData = (): DashboardData => {
-  const emptyData: DashboardData = {
-    version: CURRENT_SCHEMA_VERSION,
-    lastUpdated: new Date().toISOString(),
-    userProfile: getInitialSeedData().userProfile,
-    roles: [],
-    applications: [],
-    interviews: [],
-    checklists: [],
-    checklistTemplates: getInitialSeedData().checklistTemplates,
-    dayChecklists: [],
-    mncCompanies: [],
-    goals: [],
-  };
+  const emptyData = getInitialEmptyData();
   saveStoredData(emptyData);
   return emptyData;
 };
 
 export const resetStoredDataToSample = (): DashboardData => {
-  const sample = getInitialSeedData();
-  saveStoredData(sample);
-  return sample;
+  const empty = getInitialEmptyData();
+  saveStoredData(empty);
+  return empty;
 };

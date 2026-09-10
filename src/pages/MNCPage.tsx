@@ -84,13 +84,24 @@ export const MNCPage: React.FC = () => {
       </div>
 
       {/* Table / Empty State */}
-      {filteredMNCs.length === 0 ? (
+      {data.mncCompanies.length === 0 ? (
         <EmptyState
           icon={Building2}
-          title="No MNC Companies Tracked"
-          description="Keep an independent list of dream target companies (e.g. Microsoft, Amazon, Google, Oracle) with locations, target roles, and careers links."
-          actionText="Add Target MNC"
+          title="No companies added yet."
+          description="Track target companies with locations, target roles, and careers links."
+          actionText="Add MNC"
           onAction={() => setIsNewModalOpen(true)}
+        />
+      ) : filteredMNCs.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title="No Matching Companies"
+          description="No companies match your search query or filter."
+          actionText="Clear Filters"
+          onAction={() => {
+            setSearchQuery('');
+            setStatusFilter('all');
+          }}
         />
       ) : (
         <div className="bg-white rounded-2xl border border-rose-100/90 shadow-sm overflow-hidden">
