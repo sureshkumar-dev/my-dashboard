@@ -117,21 +117,50 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   // --- APPLICATION ACTIONS ---
   const addApplication = useCallback(
-    (app: Omit<JobApplication, 'id' | 'createdAt' | 'updatedAt'>): JobApplication => {
+    (app: Omit<JobApplication, 'id' | 'createdAt' | 'updatedAt'> | any): JobApplication => {
       const now = new Date().toISOString();
+      const company = String(app.company || app.companyName || '').trim();
+      const role = String(app.jobTitle || app.role || '').trim();
+      const id = app.id && !app.id.startsWith('app-')
+        ? app.id
+        : 'app_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+
       const newApp: JobApplication = {
         ...app,
-        id: 'app_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-        createdAt: now,
+        id,
+        company,
+        companyName: company,
+        jobTitle: role,
+        role: role,
+        roleId: app.roleId || 'role_general',
+        createdAt: app.createdAt || now,
         updatedAt: now,
       };
 
-      setData((prev) => ({
-        ...prev,
-        applications: [newApp, ...prev.applications],
-      }));
+      setData((prev) => {
+        let nextRoles = prev.roles;
+        if (role && !prev.roles.some((r) => r.name.toLowerCase() === role.toLowerCase())) {
+          const newRole: Role = {
+            id: newApp.roleId && newApp.roleId !== 'role_general' ? newApp.roleId : 'role_' + Date.now(),
+            name: role,
+            order: prev.roles.length + 1,
+            createdAt: now,
+          };
+          nextRoles = [...prev.roles, newRole];
+        }
 
-      showToast('Application added', `${newApp.company} - ${newApp.jobTitle}`);
+        const nextApplications = [newApp, ...prev.applications.filter((a) => a.id !== newApp.id)];
+        const nextData: DashboardData = {
+          ...prev,
+          roles: nextRoles,
+          applications: nextApplications,
+          lastUpdated: now,
+        };
+        saveStoredData(nextData);
+        return nextData;
+      });
+
+      showToast('Application added', `${company} - ${role}`);
       return newApp;
     },
     [showToast]
@@ -140,12 +169,28 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   const updateApplication = useCallback(
     (id: string, updates: Partial<JobApplication>) => {
       const now = new Date().toISOString();
-      setData((prev) => ({
-        ...prev,
-        applications: prev.applications.map((app) =>
-          app.id === id ? { ...app, ...updates, updatedAt: now } : app
-        ),
-      }));
+      setData((prev) => {
+        const nextApplications = prev.applications.map((app) => {
+          if (app.id !== id) return app;
+          const merged = { ...app, ...updates, updatedAt: now };
+          const company = String(merged.company || merged.companyName || '').trim();
+          const role = String(merged.jobTitle || merged.role || '').trim();
+          return {
+            ...merged,
+            company,
+            companyName: company,
+            jobTitle: role,
+            role: role,
+          };
+        });
+        const nextData = {
+          ...prev,
+          applications: nextApplications,
+          lastUpdated: now,
+        };
+        saveStoredData(nextData);
+        return nextData;
+      });
       showToast('Application updated');
     },
     [showToast]
@@ -153,10 +198,16 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const deleteApplication = useCallback(
     (id: string) => {
-      setData((prev) => ({
-        ...prev,
-        applications: prev.applications.filter((app) => app.id !== id),
-      }));
+      setData((prev) => {
+        const nextApplications = prev.applications.filter((app) => app.id !== id);
+        const nextData = {
+          ...prev,
+          applications: nextApplications,
+          lastUpdated: new Date().toISOString(),
+        };
+        saveStoredData(nextData);
+        return nextData;
+      });
       showToast('Application deleted', undefined, 'info');
     },
     [showToast]
@@ -165,12 +216,18 @@ export const DashboardProvider: React.FC<{ children: ReactNode }> = ({ children 
   const updateApplicationStatus = useCallback(
     (id: string, status: ApplicationStatus) => {
       const now = new Date().toISOString();
-      setData((prev) => ({
-        ...prev,
-        applications: prev.applications.map((app) =>
+      setData((prev) => {
+        const nextApplications = prev.applications.map((app) =>
           app.id === id ? { ...app, status, updatedAt: now } : app
-        ),
-      }));
+        );
+        const nextData = {
+          ...prev,
+          applications: nextApplications,
+          lastUpdated: now,
+        };
+        saveStoredData(nextData);
+        return nextData;
+      });
       showToast('Status updated', `Changed to "${status}"`);
     },
     [showToast]

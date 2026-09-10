@@ -4,47 +4,25 @@ import { getInitialEmptyData, BUILT_IN_TEMPLATES } from './seedData';
 export const STORAGE_KEY = 'job_dashboard_data_v2';
 export const CURRENT_SCHEMA_VERSION = 2;
 
-// Helper to detect and discard any remnant demo/mock records from development
+// Helper to detect and discard only hardcoded mock IDs from legacy development data
 const isDemoRecord = (item: any): boolean => {
   if (!item || typeof item !== 'object') return true;
   const id = String(item.id || '');
-  const company = String(item.company || item.companyName || '');
-  const name = String(item.name || item.title || '');
 
-  // Check demo IDs or known demo names
+  // Only discard hardcoded development mock IDs (from legacy v1 initial seed)
   if (
-    id.startsWith('app-') ||
-    id.startsWith('int-') ||
-    id.startsWith('chk-') ||
-    id.startsWith('day-chk-') ||
-    id.startsWith('mnc-') ||
-    id.startsWith('goal-')
-  ) {
-    return true;
-  }
-
-  if (
-    company === 'BE Engineer' ||
-    company === 'ABC Technologies' ||
-    company === 'XYZ Solutions' ||
-    company === 'Company A' ||
-    company === 'Company B' ||
-    company === 'NovaStack Labs' ||
-    company === 'Microsoft' ||
-    company === 'Amazon' ||
-    company === 'Accenture' ||
-    company === 'Google' ||
-    company === 'Oracle'
-  ) {
-    return true;
-  }
-
-  if (
-    name === 'BE Engineer Interview Day' ||
-    name === 'Apply to 10 jobs this week' ||
-    name === 'Complete 5 mock interviews' ||
-    name === 'Finish Node.js & Redis revision' ||
-    name === 'Apply to 5 MNCs'
+    id.startsWith('app-1') ||
+    id.startsWith('app-2') ||
+    id.startsWith('app-3') ||
+    id.startsWith('int-1') ||
+    id.startsWith('int-2') ||
+    id.startsWith('chk-1') ||
+    id.startsWith('chk-2') ||
+    id.startsWith('day-chk-1') ||
+    id.startsWith('mnc-1') ||
+    id.startsWith('mnc-2') ||
+    id.startsWith('goal-1') ||
+    id.startsWith('goal-2')
   ) {
     return true;
   }
@@ -89,7 +67,19 @@ export const loadStoredData = (): DashboardData => {
       lastUpdated: parsed.lastUpdated || new Date().toISOString(),
       userProfile: parsed.userProfile || initial.userProfile,
       roles: rawRoles.filter((r: any) => !r.id?.startsWith('role-')),
-      applications: rawApps.filter((a: any) => !isDemoRecord(a)),
+      applications: rawApps
+        .filter((a: any) => !isDemoRecord(a))
+        .map((a: any) => {
+          const company = String(a.company || a.companyName || '').trim();
+          const role = String(a.jobTitle || a.role || '').trim();
+          return {
+            ...a,
+            company,
+            companyName: company,
+            jobTitle: role,
+            role: role,
+          };
+        }),
       interviews: rawInterviews.filter((i: any) => !isDemoRecord(i)),
       checklists: rawChecklists.filter((c: any) => !isDemoRecord(c)),
       checklistTemplates:

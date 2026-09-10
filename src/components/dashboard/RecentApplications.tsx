@@ -81,8 +81,12 @@ export const RecentApplications: React.FC<RecentApplicationsProps> = ({
                     onClick={() => onSelectApplication(app)}
                     className="hover:bg-rose-50/40 cursor-pointer transition-colors"
                   >
-                    <td className="py-3 px-3 font-semibold text-slate-800 truncate">{app.company}</td>
-                    <td className="py-3 px-3 text-slate-600 truncate">{getRoleName(app.roleId)}</td>
+                    <td className="py-3 px-3 font-semibold text-slate-800 truncate">
+                      {app.company || (app as any).companyName}
+                    </td>
+                    <td className="py-3 px-3 text-slate-600 truncate">
+                      {app.jobTitle || (app as any).role || getRoleName(app.roleId)}
+                    </td>
                     <td className="py-3 px-3">
                       <StatusBadge status={app.status} />
                     </td>

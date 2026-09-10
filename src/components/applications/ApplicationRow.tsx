@@ -13,6 +13,9 @@ export const ApplicationRow: React.FC<ApplicationRowProps> = ({
   application,
   onClick,
 }) => {
+  const company = application.company || (application as any).companyName || 'Unknown Company';
+  const role = application.jobTitle || (application as any).role || 'Not specified';
+
   return (
     <tr
       onClick={() => onClick(application)}
@@ -26,33 +29,36 @@ export const ApplicationRow: React.FC<ApplicationRowProps> = ({
           </div>
           <div>
             <span className="font-semibold text-slate-800 text-sm group-hover:text-rose-600 transition-colors block">
-              {application.company}
+              {company}
             </span>
-            {application.jobTitle && (
-              <span className="text-[11px] text-slate-400 block sm:hidden">
-                {application.jobTitle}
-              </span>
-            )}
+            <span className="text-[11px] text-slate-400 block sm:hidden">
+              {role}
+            </span>
           </div>
         </div>
       </td>
 
-      {/* 2. Status */}
-      <td className="py-3.5 px-4 sm:px-6">
-        <StatusBadge status={application.status} />
+      {/* 2. Role */}
+      <td className="py-3.5 px-4 sm:px-6 hidden sm:table-cell text-xs text-slate-700 font-medium">
+        {role}
       </td>
 
       {/* 3. Location */}
       <td className="py-3.5 px-4 sm:px-6">
         <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
           <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span>{application.location}</span>
+          <span>{application.location || 'Remote'}</span>
           {application.locationType && application.locationType !== 'On-site' && (
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 hidden md:inline">
               {application.locationType}
             </span>
           )}
         </div>
+      </td>
+
+      {/* 4. Status */}
+      <td className="py-3.5 px-4 sm:px-6">
+        <StatusBadge status={application.status} />
       </td>
 
       {/* Action cue */}

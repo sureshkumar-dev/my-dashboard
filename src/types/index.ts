@@ -32,7 +32,9 @@ export interface JobApplication {
   id: string;
   roleId: string;
   company: string;
+  companyName?: string;
   jobTitle: string;
+  role?: string;
   location: string;
   locationType: LocationType;
   appliedDate: string;

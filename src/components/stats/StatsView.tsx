@@ -76,8 +76,22 @@ export const StatsView: React.FC<StatsViewProps> = ({ applications, roles }) => 
 
   // Role-wise statistics
   const roleStats = useMemo(() => {
-    return roles.map((r) => {
-      const apps = filteredApps.filter((a) => a.roleId === r.id);
+    const roleMap = new Map<string, { name: string; roleId?: string }>();
+    roles.forEach((r) => roleMap.set(r.name.toLowerCase(), { name: r.name, roleId: r.id }));
+    filteredApps.forEach((a) => {
+      const rName = (a.jobTitle || (a as any).role || '').trim();
+      if (rName && !roleMap.has(rName.toLowerCase())) {
+        roleMap.set(rName.toLowerCase(), { name: rName, roleId: a.roleId });
+      }
+    });
+
+    return Array.from(roleMap.values()).map(({ name, roleId }) => {
+      const apps = filteredApps.filter(
+        (a) =>
+          (roleId && a.roleId === roleId) ||
+          (a.jobTitle && a.jobTitle.toLowerCase() === name.toLowerCase()) ||
+          ((a as any).role && (a as any).role.toLowerCase() === name.toLowerCase())
+      );
       const rTotal = apps.length;
       const rCalls = apps.filter(
         (a) =>
@@ -93,7 +107,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ applications, roles }) => 
       const rRejected = apps.filter((a) => a.status === 'Rejected').length;
 
       return {
-        role: r,
+        role: { id: roleId || name, name, order: 0, createdAt: '' },
         total: rTotal,
         calls: rCalls,
         interviews: rInterviews,

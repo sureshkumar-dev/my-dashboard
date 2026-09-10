@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useDashboard } from '../context/DashboardContext';
-import { RoleGroup } from '../components/applications/RoleGroup';
+import { ApplicationRow } from '../components/applications/ApplicationRow';
 import { ApplicationModal } from '../components/applications/ApplicationModal';
 import { AddRoleModal } from '../components/applications/AddRoleModal';
 import { JobApplication, ApplicationStatus } from '../types';
@@ -15,7 +15,6 @@ export const ApplicationsPage: React.FC = () => {
     deleteApplication,
     updateApplicationStatus,
     addRole,
-    deleteRole,
   } = useDashboard();
 
   // Modals state
@@ -31,30 +30,22 @@ export const ApplicationsPage: React.FC = () => {
   // Filter applications by search and status
   const filteredApps = useMemo(() => {
     return data.applications.filter((app) => {
+      const company = app.company || (app as any).companyName || '';
+      const role = app.jobTitle || (app as any).role || '';
+      const location = app.location || '';
       const matchesSearch =
         searchQuery === '' ||
-        app.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (app.jobTitle && app.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()));
+        company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        role.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [data.applications, searchQuery, statusFilter]);
 
-  const handleOpenAddForRole = (roleId: string) => {
-    setTargetRoleIdForNewApp(roleId);
-    setIsNewAppModalOpen(true);
-  };
-
   const handleCreateApplication = (appData: any) => {
-    let roleId = appData.roleId;
-    // If a new role name was typed on the fly
-    if (appData.newRoleName && appData.newRoleName.trim()) {
-      const createdRole = addRole(appData.newRoleName.trim());
-      roleId = createdRole.id;
-    }
-    addApplication({ ...appData, roleId });
+    addApplication(appData);
     setIsNewAppModalOpen(false);
   };
 
@@ -82,7 +73,7 @@ export const ApplicationsPage: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by company, location, or title..."
+              placeholder="Search by company, location, or role..."
               className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-slate-50/50"
             />
           </div>
@@ -108,14 +99,6 @@ export const ApplicationsPage: React.FC = () => {
         {/* Buttons */}
         <div className="flex items-center gap-2.5 shrink-0">
           <button
-            onClick={() => setIsAddRoleModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-rose-700 bg-rose-50/70 hover:bg-rose-100/70 border border-rose-200/70 rounded-xl transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ Add Role</span>
-          </button>
-
-          <button
             onClick={() => {
               setTargetRoleIdForNewApp(undefined);
               setIsNewAppModalOpen(true);
@@ -123,7 +106,7 @@ export const ApplicationsPage: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-sm shadow-rose-200 hover:shadow transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Application</span>
+            <span>Add Job Application</span>
           </button>
         </div>
       </div>
@@ -152,24 +135,29 @@ export const ApplicationsPage: React.FC = () => {
           }}
         />
       ) : (
-        <div className="space-y-4 w-full min-w-0">
-          {data.roles.map((role) => {
-            const roleApplications = filteredApps.filter((a) => a.roleId === role.id);
-            // Hide empty role groups when search filter is active
-            if (roleApplications.length === 0 && (searchQuery !== '' || statusFilter !== 'all')) {
-              return null;
-            }
-            return (
-              <RoleGroup
-                key={role.id}
-                role={role}
-                applications={roleApplications}
-                onSelectApplication={(app) => setSelectedApp(app)}
-                onAddApplicationForRole={handleOpenAddForRole}
-                onDeleteRole={deleteRole}
-              />
-            );
-          })}
+        <div className="bg-white rounded-2xl border border-rose-100/90 shadow-sm overflow-hidden w-full min-w-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-rose-100/60 bg-slate-50/60 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3 px-4 sm:px-6">Company</th>
+                  <th className="py-3 px-4 sm:px-6 hidden sm:table-cell">Role</th>
+                  <th className="py-3 px-4 sm:px-6">Location</th>
+                  <th className="py-3 px-4 sm:px-6">Status</th>
+                  <th className="py-3 px-4 text-right sr-only">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-rose-100/30">
+                {filteredApps.map((app) => (
+                  <ApplicationRow
+                    key={app.id}
+                    application={app}
+                    onClick={(item) => setSelectedApp(item)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
